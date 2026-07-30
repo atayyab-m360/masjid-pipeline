@@ -45,7 +45,12 @@ export default function App() {
   }, [fetchOrgs]);
 
   const saveOrg = async (data) => {
-    const { contacts, ...payload } = data;
+    const { contacts, ...rest } = data;
+    // Empty-string form fields (especially date inputs) must be null, not "",
+    // or Postgres rejects the write with a 400 error.
+    const payload = Object.fromEntries(
+      Object.entries(rest).map(([k, v]) => [k, v === "" ? null : v])
+    );
     if (payload.id) {
       const { error } = await supabase.from("masjid_pipeline").update(payload).eq("id", payload.id);
       if (!error) showToast("✅ Organization updated");
